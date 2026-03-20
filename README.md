@@ -1,14 +1,66 @@
-# AI Automation Portfolio
+# AI & Automation Portfolio – Deborah Alabi
 
-This repository showcases my AI-powered automation workflows built using GitHub Actions and modern AI tools.
-
-## 🚀 Projects
-
-### 1️⃣ Automated README Generator
-- Uses AI to generate structured README files
-- Triggered via GitHub Actions
-- Designed to automate documentation workflows
+## About Me
+I design and build AI-powered automation systems using tools like n8n, APIs, and workflow automation platforms to streamline operations, improve customer experience, and reduce manual tasks.
 
 ---
 
-More automation projects are coming soon.
+## 🔧 Tools & Technologies
+- n8n
+- Webhooks
+- APIs
+- Google Sheets
+- Email Automation
+- WhatsApp Automation
+- AI Agents
+- Zapier (Learning)
+- Make (Learning)
+
+---
+
+## 🚀 Projects
+
+### 1. Webhook → Google Sheets → Email Automation
+Automated data capture from webhook, stored in Google Sheets, and triggered email notifications.
+
+---
+
+### 2. Real Estate Lead Onboarding System
+Automated lead capture, CRM logging, and email follow-up workflow.
+
+---
+
+### 3. AI Customer Support Agent (Chicken Republic Simulation)
+Designed an AI-powered assistant capable of handling customer queries and logging structured data.
+
+---
+
+### 4. Email Management System
+Automated email sorting, categorization, and response handling.
+
+---
+
+### 5. Voice Agent System
+Built a voice-based interaction system integrated with backend automation.
+
+---
+
+### 6. WhatsApp AI Agent
+Automated conversational workflow integrated with messaging systems.
+
+---
+
+### 7. SEO Blog Automation Agent (In Progress)
+AI-powered content generation and blog automation system.
+
+---
+
+## 📁 Repository Structure
+- `/workflows` → n8n workflow JSON files
+- `/screenshots` → workflow visuals
+- `/docs` → detailed explanations of each project
+
+---
+
+## 🎯 Goal
+To build scalable AI-powered automation systems that solve real business problems and improve operational efficiency.
