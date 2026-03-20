@@ -1,0 +1,1001 @@
+{
+  "name": "AI SEO  Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecfe0fdd-3769-44bd-af85-e9212ca051c4",
+              "leftValue": "={{ $json.STATUS }}",
+              "rightValue": "Researching",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "fb4090f4-56e8-441a-8190-15afbd6c58f2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b0aa43c-8ce4-4c29-8d6d-832ef8c26dc8",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "1b2bbd21-812e-4130-94db-1801e8b1641e",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "4d344725-783c-4f73-ae30-dcb52e98753b",
+              "name": "snippet",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "cc0c5513-644a-4743-9d7c-cebd57540136",
+      "name": "Edit Fields (title, link, snippet)"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "organic_results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        208
+      ],
+      "id": "3f22976a-320a-4d51-889d-23211c5d702f",
+      "name": "Split Out (organic_results)"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "link",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        208
+      ],
+      "id": "d8211d0a-5392-49d7-9063-ef0d698fda85",
+      "name": "Remove Duplicates (compare: link) "
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => ({\n  json: {\n    url: item.json.link,\n    title: item.json.title,\n    snippet: item.json.snippet\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        208
+      ],
+      "id": "7f44e506-2d6a-4428-9e37-ca2b982a6907",
+      "name": "Code (Prepare Competitor URLs)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cleaned = [];\n\nfor (const item of $input.all()) {\n  let text = item.json.data?.markdown || \"\";\n\n  // Remove images\n  text = text.replace(/!\\[.*?\\]\\(.*?\\)/g, \"\");\n\n  // Remove links but keep anchor text\n  text = text.replace(/\\[([^\\]]+)\\]\\((.*?)\\)/g, \"$1\");\n\n  // Remove HTML tags\n  text = text.replace(/<[^>]*>/g, \"\");\n\n  // Remove excessive whitespace\n  text = text.replace(/\\n{3,}/g, \"\\n\\n\");\n\n  // Remove common unwanted sections\n  const stopSections = [\n    \"Disqus Comments\",\n    \"Join the discussion\",\n    \"Share\",\n    \"Membership\",\n    \"Comments\",\n    \"Related articles\",\n    \"You might also like\",\n    \"Subscribe\",\n    \"Newsletter\"\n  ];\n\n  for (const stop of stopSections) {\n    const index = text.indexOf(stop);\n    if (index !== -1) {\n      text = text.substring(0, index);\n    }\n  }\n\n  // IMPORTANT: limit size before sending to AI\n  if (text.length > 6000) {\n    text = text.substring(0, 6000);\n  }\n\n  cleaned.push({\n    json: {\n      article: text.trim()\n    }\n  });\n}\n\nreturn cleaned;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        224
+      ],
+      "id": "104b7c32-b2e0-4527-9717-2fff92d77d7a",
+      "name": "Code (Clean Article)"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "9914e31a-67df-4d87-84b9-ee2119796dc8",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -16
+      ],
+      "id": "aa57eaf7-e76f-4a3c-96ce-c0c2e4f9aac7",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris",
+          "mode": "list",
+          "cachedResultName": "AI_SEO_PIPELINE",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "STATUS",
+              "lookupValue": "Researching"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -32,
+        368
+      ],
+      "id": "06d88b23-9c5e-4974-ae97-459e4fbac660",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "j9R6MPTYT32fbErm",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "queries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        848,
+        208
+      ],
+      "id": "c3cccb6d-d1f8-40f3-ad41-4e47bf1f3348",
+      "name": "Split Out (Queries)"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.output) {\n  return [];\n}\n\nconst parsed = JSON.parse($json.output);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "181e8436-92f9-4f4d-affb-28af7a40d955",
+      "name": "Code (Parse JSON Queries)"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.queries }}"
+            },
+            {
+              "name": "engine",
+              "value": "google"
+            },
+            {
+              "name": "api_key",
+              "value": "1722e16cfb969cabc4a9029591b1b89400ddc69bc4071ba35d18427dc93c0ce8"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "d4980877-f06c-45ff-9e93-c7a870a9b35e",
+      "name": "HTTP Request (Google Search)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f761a094-fd11-4bef-a6f8-7bb776e6e107",
+              "name": "ID",
+              "value": "={{ $json.ID }}",
+              "type": "string"
+            },
+            {
+              "id": "0e5a452f-e363-4ec4-81b7-ed6665fdd2b4",
+              "name": "=TOPIC",
+              "value": "={{ $json.TOPIC }}",
+              "type": "string"
+            },
+            {
+              "id": "43111276-20f3-4bab-9a52-681516b1a30e",
+              "name": "STATUS",
+              "value": "={{ $json.STATUS }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        208
+      ],
+      "id": "c3b25613-8e56-4019-b803-2122c1ac204f",
+      "name": "Edit Fields (Status → Processing)"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.url }}",
+        "scrapeOptions": {
+          "options": {
+            "formats": {
+              "format": [
+                {}
+              ]
+            },
+            "headers": {},
+            "waitFor": 60,
+            "timeout": 60000
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        0
+      ],
+      "id": "157add25-0a55-4cc1-ac15-bef57c563b75",
+      "name": "Firecrawl (Scrape Articles)",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "3XzcyJD9xspgUjfS",
+          "name": "Firecrawl account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = items[0].json.output;\n\n// Remove markdown wrappers if present\nraw = raw.replace(\"```json\", \"\").replace(\"```\", \"\").trim();\n\n// Remove problematic control characters\nraw = raw.replace(/[\\u0000-\\u001F]+/g, \" \");\n\nconst data = JSON.parse(raw);\n\nreturn [\n  {\n    json: {\n      article: data.article.trim(),\n      seo_score: data.seo_score\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2928,
+        0
+      ],
+      "id": "d4b18b9e-6beb-4749-9380-d53b5bf9eaba",
+      "name": "Code in JavaScript (Parse Blog JSON)"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris",
+          "mode": "list",
+          "cachedResultName": "AI_SEO_PIPELINE",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15m8H6XB_M8OluHzpW6iL79cIEITJ8rcwc84exfw1ris/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TOPIC": "={{ $json.TOPIC }}",
+            "ARTICLE": "={{ $json.article.replace(/##/g,\"\\n\\n##\").replace(/\\n{3,}/g,\"\\n\\n\") }}",
+            "SEO SCORE": "={{ $json.seo_score }}",
+            "row_number": "={{ $json.row_number }}",
+            "SEARCH QUERIES": "={{ ($json.search_queries || $json[\"SEARCH QUERIES\"] || \"\").toString().replace(/[\\[\\]\"]/g,\"\").replace(/,/g,\"\\n\") }}",
+            "PRIMARY KEYWORD": "={{ $json.primary_keyword }}",
+            "RELATED KEYWORD": "={{ ($json.related_keywords || $json[\"RELATED KEYWORD\"] || \"\").toString().replace(/[\\[\\]\"]/g,\"\").replace(/,/g,\"\\n\") }}",
+            "ARTICLE TITLE": "={{ $json.article_title }}",
+            "META DESCRIPTION": "={{ $json.meta_description }}",
+            "ID": "={{ $json.ID }}",
+            "STATUS": "Completed",
+            "COMPETITOR URLs": "={{ $json['COMPETITOR URLs'] }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TOPIC",
+              "displayName": "TOPIC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SEARCH QUERIES",
+              "displayName": "SEARCH QUERIES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PRIMARY KEYWORD",
+              "displayName": "PRIMARY KEYWORD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RELATED KEYWORD",
+              "displayName": "RELATED KEYWORD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "COMPETITOR URLs",
+              "displayName": "COMPETITOR URLs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ARTICLE TITLE",
+              "displayName": "ARTICLE TITLE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "META DESCRIPTION",
+              "displayName": "META DESCRIPTION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ARTICLE",
+              "displayName": "ARTICLE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SEO SCORE",
+              "displayName": "SEO SCORE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3152,
+        0
+      ],
+      "id": "9f1d992c-3665-45cc-be26-21f61899a7c4",
+      "name": "Update row in sheet (Update Row Final)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "j9R6MPTYT32fbErm",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let combinedArticles = \"\";\n\nitems.forEach((item, index) => {\n\n  // Get article safely\n  let article = item.json.article || \"\";\n\n  // Remove extra spaces and line breaks\n  article = article.replace(/\\s+/g, \" \").trim();\n\n  // Limit each competitor article length\n  article = article.slice(0, 3000);\n\n  combinedArticles += `Competitor ${index + 1}:\\n${article}\\n\\n`;\n\n});\n\n// Limit the total size sent to the AI\ncombinedArticles = combinedArticles.slice(0, 12000);\n\nreturn [\n  {\n    json: {\n      query: items[0].json.query,\n      competitor_articles: combinedArticles\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        0
+      ],
+      "id": "5323cf6e-9ac6-4fbf-b5b4-ea4468870343",
+      "name": "Code in JavaScript (Combine Competitors)"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        224
+      ],
+      "id": "aad982c6-01f7-4c10-857f-8ae6fc480a2b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "iCXv58wZZrUPS9PP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        240
+      ],
+      "id": "cf581c8f-a294-4644-8b6b-4af36ff77f2b",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "iCXv58wZZrUPS9PP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert SEO blog writer.\n\nWrite a high-quality SEO blog article using the information below.\n\nPrimary Keyword:\n{{$json.primary_keyword}}\n\nRelated Keywords:\n{{$json.related_keyword}}\n\nArticle Title:\n{{$json.article_title}}\n\nSEO Insights:\n{{$json.seo_insights}}\n\nRequirements:\n\n- Write a 1200–1500 word blog article\n- Use the primary keyword naturally in the introduction\n- Include related keywords throughout the article\n- Use clear headings (H2 and H3)\n- Include an engaging introduction and conclusion\n- Make the content beginner friendly\n- Write in a professional blog tone\n- Optimize for search engines\n\nReturn ONLY JSON in this format:\n\n{\n \"article\": \"\",\n \"seo_score\": \"\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2592,
+        0
+      ],
+      "id": "d54efa5d-9760-4d36-b8e3-7f95cb188aeb",
+      "name": "AI Agent (Blog Writer)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert SEO strategist.\n\nAnalyze the competitor articles below and extract SEO intelligence.\n\nCompetitor Articles:\n{{$json.competitor_articles}}\n\nReturn ONLY valid JSON in this format:\n\n{\n \"primary_keyword\": \"\",\n \"related_keywords\": [],\n \"search_queries\": [],\n \"article_title\": \"\",\n \"meta_description\": \"\",\n \"seo_insights\": \"\"\n}\nReturn ONLY valid JSON.\n\nDo not include explanations.\nDo not include markdown.\nDo not include text before or after the JSON.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2064,
+        0
+      ],
+      "id": "8f4fbff8-6550-4f8d-96c2-6d7e9ae9ce82",
+      "name": "AI Agent (SEO Analysis)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.output || $json.content || $json.message?.content;\n\nif (!text) {\n  throw new Error(\"No SEO response found\");\n}\n\n// Extract JSON from the response\nconst match = text.match(/\\{[\\s\\S]*\\}/);\n\nif (!match) {\n  throw new Error(\"No JSON found in AI response\");\n}\n\nconst parsed = JSON.parse(match[0]);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2384,
+        0
+      ],
+      "id": "2b46cb94-07d4-4199-8f14-084d759e97d9",
+      "name": "Code in JavaScript (Parse SEO Data)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2272,
+        384
+      ],
+      "id": "998f92b9-31de-4c71-9e46-4144795fe391",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2960,
+        400
+      ],
+      "id": "83bde612-b174-4011-8dca-e3fe8228ea83",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate 5 Google search queries for the topic: {{$json.TOPIC}}\n\nReturn ONLY valid JSON in this format:\n{\"queries\": [\"query1\", \"query2\", \"query3\", \"query4\", \"query5\"]}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        544,
+        0
+      ],
+      "id": "e69a875b-44a5-4024-be06-36d2a3a2dc0f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        544,
+        224
+      ],
+      "id": "f7f29a43-3e6e-4bd5-9268-6a1701cdfeb2",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "iCXv58wZZrUPS9PP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -16
+      ],
+      "id": "a5751691-c546-4f91-aa1f-38feee335d99",
+      "name": "Limit1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Status → Processing)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (title, link, snippet)": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates (compare: link) ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out (organic_results)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (title, link, snippet)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates (compare: link) ": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code (Prepare Competitor URLs)": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl (Scrape Articles)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Code (Prepare Competitor URLs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code (Clean Article)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript (Combine Competitors)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out (Queries)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Google Search)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code (Parse JSON Queries)": {
+      "main": [
+        [
+          {
+            "node": "Split Out (Queries)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (Google Search)": {
+      "main": [
+        [
+          {
+            "node": "Split Out (organic_results)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (Status → Processing)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl (Scrape Articles)": {
+      "main": [
+        [
+          {
+            "node": "Code (Clean Article)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript (Parse Blog JSON)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript (Combine Competitors)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (SEO Analysis)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (SEO Analysis)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Blog Writer)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Blog Writer)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript (Parse Blog JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (SEO Analysis)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript (Parse SEO Data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript (Parse SEO Data)": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "AI Agent (Blog Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet (Update Row Final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code (Parse JSON Queries)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b4c29701-bf21-497e-9b84-7b8ac8826b03",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a485c6a88f7f671ac86a85bc3bce5087cd40736d6c66198abd18d3763a6b49e4"
+  },
+  "id": "svTWn2D3dXq91wVz",
+  "tags": []
+}

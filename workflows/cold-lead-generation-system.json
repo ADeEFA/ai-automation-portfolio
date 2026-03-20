@@ -1,0 +1,322 @@
+{
+  "name": "Lead Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -256,
+        -96
+      ],
+      "id": "d8f9ae03-0047-4a81-be72-84ed8a3ead1c",
+      "name": "When chat message received",
+      "webhookId": "d232be9b-de29-4a81-9476-81ed7c5c76f2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "CRITICAL: Never use markdown formatting, code blocks, or backticks of any kind. Output raw JSON only.\n\nYou are a research assistant helping the user collect contact details from the \"Map Checker\" tool.\n\nYour job is to search Google Maps using the Map Checker tool and return all contact information in a clearly structured JSON format.\n\nLOCATION RULES:\nWhen the user mentions a location, you MUST set the \"ll\" parameter using the correct latitude and longitude for that city in this exact format: \"@lat,lng,15z\"\n\nExamples:\n- Lagos, Nigeria → \"@6.5244,3.3792,15z\"\n- Abuja, Nigeria → \"@9.0765,7.3986,15z\"\n- Port Harcourt, Nigeria → \"@4.8156,7.0498,15z\"\n- Ibadan, Nigeria → \"@7.3775,3.9470,15z\"\n- London, UK → \"@51.5074,-0.1278,15z\"\n- New York, USA → \"@40.7128,-74.0060,15z\"\n\nAlways include the @ symbol at the start and ,15z at the end. Never leave ll empty. If the user does not mention a location, ask them for one before searching.\n\nSEARCH RULES:\n- Always pass the full search term in the \"q\" parameter, for example: \"restaurants in Lagos Nigeria\"\n- Always start with page 1 unless the user asks for more results\n- If the user says \"get more\" or \"next page\", increment the page number by 1 and search again with the same query\n\nOUTPUT RULES:\nReturn ONLY a valid JSON array. No extra text, no explanation, no greeting, no markdown, no code fences. Just the raw array.\n\nFollow this exact format:\n\n[\n  {\n    \"Name\": \"Chicken Republic\",\n    \"Address\": \"15 Allen Ave, Ikeja, Lagos, Nigeria\",\n    \"Phone\": \"+234 801 234 5678\",\n    \"Website\": \"https://www.chickenrepublic.com\",\n    \"Rating\": \"4.2\",\n    \"Opening Hours\": \"8 AM–10 PM daily\"\n  },\n  {\n    \"Name\": \"Another Place\",\n    \"Address\": \"22 Victoria Island, Lagos, Nigeria\",\n    \"Phone\": \"\",\n    \"Website\": \"\",\n    \"Rating\": \"4.0\",\n    \"Opening Hours\": \"9 AM–9 PM Monday to Saturday\"\n  }\n]\n\nIMPORTANT RULES FOR THE JSON:\n- Every entry must have all 6 fields: Name, Address, Phone, Website, Rating, Opening Hours\n- If a value is missing, use an empty string \"\" — never skip the field\n- No duplicate keys\n- No nested objects\n- No trailing commas\n- Valid JSON only"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        -96
+      ],
+      "id": "1fb18d94-23af-4ab1-beeb-68deb3fb676b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        112
+      ],
+      "id": "e98d6bc0-6110-4d71-b889-78df29758b9b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "yMd1b29YqscKFGWu",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        112
+      ],
+      "id": "669a6e05-e488-46bd-b53a-775c7a639878",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This bot helps to scrape all contact information for lead generation from Google Maps. Use the query parameter 'q' for the search item, 'll' for longitude and latitude, and 'page' for the correct pagination index.",
+        "url": "https://google.serper.dev/maps",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            },
+            {
+              "name": "ll",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', ``, 'string') }}"
+            },
+            {
+              "name": "page",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', ``, 'string') }}"
+            },
+            {
+              "name": "num",
+              "value": "10"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "ed8aa9cc1ca2143fbf21ffe6ca6c33a8dc805fcd"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        112
+      ],
+      "id": "512ac424-4e3d-4317-afb5-16e53e6d528a",
+      "name": "Map Checker"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw output from the AI Agent\nconst rawOutput = $json.output;\n\n// Convert the string into actual JSON\nconst parsedData = JSON.parse(rawOutput);\n\n// Transform to a new schema\nconst formattedLeads = parsedData.map(place => {\n  return {\n    business_name: place[\"Name\"] || null,\n    address: place[\"Address\"] || null,\n    phone: place[\"Phone\"] || null,\n    website: place[\"Website\"] || null,\n    rating: place[\"Rating\"] ? Number(place[\"Rating\"]) : null,\n    opening_hours: place[\"Opening Hours\"] || null\n  };\n});\n\n// Return the structured data\nreturn formattedLeads.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -96
+      ],
+      "id": "d510f2af-00b7-497b-b7b4-aeec2186de35",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1qtddh9BGNi4gR_IxDNzBoWEC4-aa_Yj09TlIqin1olg",
+          "mode": "list",
+          "cachedResultName": "Lead Generation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qtddh9BGNi4gR_IxDNzBoWEC4-aa_Yj09TlIqin1olg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qtddh9BGNi4gR_IxDNzBoWEC4-aa_Yj09TlIqin1olg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business Name": "={{ $json.business_name }}",
+            "Address": "={{ $json.address }}",
+            "Phone Number": "={{ $json.phone }}",
+            "Website": "={{ $json.website }}",
+            "Rating": "={{ $json.rating }}",
+            "Opening Hours": "={{ $json.opening_hours }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business Name",
+              "displayName": "Business Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rating",
+              "displayName": "Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Opening Hours",
+              "displayName": "Opening Hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "28c1a2e7-88eb-47b9-922f-8e300f7496fa",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vfKRuH4dYson8Vv4",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Checker": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "02227858-c1dc-41fa-b8e2-9425fe34b292",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "83fdde9fda7c53779864b8333cba4c56b5af59864227dd2574e481e1d649f228"
+  },
+  "id": "tTqs7mCRI3D6EdTc",
+  "tags": []
+}

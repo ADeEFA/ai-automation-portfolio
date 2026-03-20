@@ -1,0 +1,263 @@
+{
+  "name": "AI Voice Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4b5c2f46-9710-4129-bca2-cbee3c8fa7f9",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        -128
+      ],
+      "id": "a8bfd7e5-7972-4ef5-b61c-8d48ce466bdb",
+      "name": "Webhook",
+      "webhookId": "4b5c2f46-9710-4129-bca2-cbee3c8fa7f9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Event Description:  {{ $json.body.emailcontent }}\nCalendar Event Time: {{ $json.body.CalendarEventTime }}\nRecipient of the event: {{ $json.body.to }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        -128
+      ],
+      "id": "91b9e0aa-685e-437d-a218-9cd56c75cc01",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        96
+      ],
+      "id": "aef8f6ed-b89c-4a98-aa7e-d0f1675124f2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "6a0ec7b6-1abc-4c73-ad40-d5cca9d61e68",
+      "name": "Send Email",
+      "webhookId": "b87b19ed-b80e-473d-918a-8790d740c24d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WKvUsX4r1V0iYEf9",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "enuodue@gmail.com",
+          "mode": "list",
+          "cachedResultName": "enuodue@gmail.com"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        96
+      ],
+      "id": "fb6eaf78-9ec7-4ea0-a776-5aac692452f6",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "kvuo1tVDE6Na2cXv",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "fd52b2f5-7023-4d31-a252-af1c5ee375ed",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "EtJi9tWTkVDFdFil",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        496,
+        -128
+      ],
+      "id": "1949d877-a317-4b3f-8a88-6edcb62df0d3",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "debb.app.n8n.cloud",
+            "user-agent": "ElevenLabs/1.0",
+            "content-length": "120",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "34.59.11.47",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9ddcfbb51df01044-ORD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "34.59.11.47, 172.69.58.173",
+            "x-forwarded-host": "debb.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-123-5d66f74465-887kk",
+            "x-is-trusted": "yes",
+            "x-real-ip": "34.59.11.47"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "to": "enuodue@gmail.com",
+            "eventdescription": "yoga session",
+            "emailcontent": "",
+            "CalendarEventTime": "3pm tomorrow"
+          },
+          "webhookUrl": "https://debb.app.n8n.cloud/webhook-test/4b5c2f46-9710-4129-bca2-cbee3c8fa7f9",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "42ac142a-0241-47d3-b907-8bfbb5a279e4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "83fdde9fda7c53779864b8333cba4c56b5af59864227dd2574e481e1d649f228"
+  },
+  "id": "lRcw5UXoBTiKnZOf",
+  "tags": []
+}
