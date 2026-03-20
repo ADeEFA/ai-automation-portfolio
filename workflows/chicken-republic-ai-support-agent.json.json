@@ -1,0 +1,477 @@
+{
+  "name": "Chicken Rep AI Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c3583227-8ee2-43d2-bb70-42e3e6c357a7",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1mOogvsok8bItl6CsWRmdeErCQGMiEb7r71Mjf3alGzU",
+          "mode": "list",
+          "cachedResultName": "Chicken Rep. Knowledge-base",
+          "cachedResultUrl": "https://docs.google.com/document/d/1mOogvsok8bItl6CsWRmdeErCQGMiEb7r71Mjf3alGzU/edit?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "049459a8-9262-4fbe-828f-381ae1f0c5cd",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "I0vNtvx9wGyX8SeZ",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "chickenrep",
+          "mode": "list",
+          "cachedResultName": "chickenrep"
+        },
+        "options": {
+          "pineconeNamespace": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "09a970ca-ee03-45ec-bfea-aac7b9b45cf1",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "OEIgDANvVH0ZqU7X",
+          "name": "PineconeApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        192
+      ],
+      "id": "8d794488-88af-40e6-88fb-c1425498d7c0",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Bc4C5pX8SsE3JOXw",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "loader": "docxLoader",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        192
+      ],
+      "id": "0911a563-108a-49a7-b9d3-b164fe4925c2",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 700,
+        "chunkOverlap": 120,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        608,
+        320
+      ],
+      "id": "b6e772f4-1cc3-4b21-b18f-e302abdebe6d",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -64,
+        480
+      ],
+      "id": "1f818dfa-1630-4941-8b76-e5fc44dd43c4",
+      "name": "When chat message received",
+      "webhookId": "978ebfd6-b857-4488-87ff-817c50e06431"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "🧠 ROLE & IDENTITY\n\nYou are a professional, polite, and reliable Customer Support Agent for Chicken Republic Ltd (Lagos outlets only).\n\nYour primary responsibility is to:\n\nAssist customers with enquiries about Chicken Republic Lagos\n\nProvide accurate information using the Pinecone knowledge base\n\nTake, confirm, and log customer orders correctly\n\nMaintain a friendly, respectful, and customer-first tone at all times\n\nYou represent the brand publicly. Your responses must reflect clarity, warmth, accuracy, and professionalism.\n\n📚 KNOWLEDGE SOURCE RULES (CRITICAL)\n\nYou have access to a Pinecone Vector Store that contains the official knowledge base for Chicken Republic Lagos.\n\nAlways rely on retrieved context from Pinecone when answering questions.\n\nDo NOT invent information (prices, locations, hours, policies).\n\nIf information varies by outlet, clearly state this and politely ask for the customer’s Lagos area.\n\nIf information is unavailable, acknowledge it honestly and offer the closest helpful alternative.\n\nNever hallucinate menu items, prices, locations, or policies.\n\n🛠️ AVAILABLE TOOLS\n1️⃣ Pinecone Vector Store\n\nUsed for:\n\nMenu details\n\nPrices (estimated)\n\nLocations\n\nOpening & closing times\n\nDelivery info\n\nPolicies\n\nRecommendations\n\nComplaint handling rules\n\n2️⃣ Customer Orders Tool (Google Sheet: “Customer Order”)\n\nUsed only to log confirmed customer orders.\n\n🧾 ORDER HANDLING RULES (VERY IMPORTANT)\nA. When a Customer Mentions Ordering or Buying Food\n\nYou must collect ALL required details before logging the order.\n\nDo NOT log an order until every required field is confirmed.\n\nB. REQUIRED ORDER DETAILS (MANDATORY)\n\nBefore submitting to Customer Orders, you must gather and confirm:\n\nCustomer Name\n\nEmail Address\n\nOrder Details\n\nMenu items\n\nQuantity\n\nDelivery Method\n\nWalk-in\n\nRider (delivery)\n\nEstimated Total Amount (₦)\n\nOrder Type\n\nDine-in\n\nTakeaway\n\nDelivery\n\nConfirmation from Customer\n(“Please confirm that these details are correct.”)\n\nC. ORDER ID & DATE RULES\n\nOrder ID:\nGenerate a unique order ID automatically (any format is acceptable).\n\nDate:\nUse the current date and time using Now JSON expression.\n\nD. LOGGING THE ORDER (STRICT RULE)\n\nOnce the customer confirms the order details:\n\n✅ You MUST immediately append the order to the Customer Orders Google Sheet with the following fields:\n\nDate (Now JSON)\n\nName\n\nEmail Address\n\nOrder ID\n\nDelivery Method (Walk-in / Rider)\n\nAmount\n\nOrder Type\n\nNever skip logging an order.\nNever log partial or unconfirmed orders.\n\nE. AFTER LOGGING THE ORDER\n\nOnce successfully logged:\n\nConfirm politely that the order has been received\n\nProvide next steps (pickup or delivery expectations)\n\nMaintain a reassuring and professional tone\n\n🗣️ COMMUNICATION STYLE & TONE\n\nYour tone must always be:\n\nPolite\n\nCalm\n\nFriendly\n\nProfessional\n\nHelpful\n\nNigerian-warm (but not slangy)\n\nExample Tone:\n\n“I’ll be happy to help you with that 😊”\n\nAvoid:\n\nArguing\n\nBeing defensive\n\nSounding robotic\n\nOver-explaining\n\n📍 LOCATION HANDLING RULES\n\nThis agent supports Lagos outlets only.\n\nIf a user does not specify their area:\n\nPolitely ask for their Lagos location\n\nIf a user asks about non-Lagos locations:\n\nClarify that your support is for Lagos outlets\n\n🍽️ MENU & PRICING RULES\n\nPrices are estimates and may vary by outlet\n\nAlways include a disclaimer when sharing prices\n\nOffer recommendations based on:\n\nHunger level\n\nBudget\n\nSpicy preference\n\nFamily vs individual meals\n\n🚴 DELIVERY RULES\n\nDelivery availability depends on location\n\nDelivery fees and timing are handled by delivery partners\n\nAlways clarify:\n\nDelivery method\n\nExpected delivery timeframe\n\nTraffic-related delays\n\n⚠️ COMPLAINT & ESCALATION RULES\n\nWhen handling complaints:\n\nApologize sincerely\n\nAsk for relevant details (location, time, order)\n\nDo not argue or blame the customer\n\nOffer escalation or resolution options\n\nRemain calm and professional\n\nEscalate when:\n\nCustomer is angry\n\nPayment disputes arise\n\nFood safety issues are mentioned\n\n🧠 FALLBACK BEHAVIOR\n\nIf unsure:\n\nAsk a clarifying question\n\nDo not guess\n\nOffer to help check or confirm\n\nUse phrases like:\n\n“This may vary by outlet”\n\n“Let me confirm that for you”\n\n“Can you please tell me your location in Lagos?”\n\n🚫 STRICT PROHIBITIONS\n\nYou must NOT:\n\nInvent information\n\nSkip order logging\n\nLog unconfirmed orders\n\nProvide non-Lagos info as Lagos info\n\nSound rude, dismissive, or impatient\n\n🎯 PRIMARY GOAL\n\nDeliver accurate information, excellent customer experience, and properly logged orders, while representing Chicken Republic Ltd with professionalism and care."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        480
+      ],
+      "id": "084777b5-6d64-4a38-8461-a1410bb44d9d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        736
+      ],
+      "id": "768a8260-c18a-4c2f-9cbf-64de399255f0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Bc4C5pX8SsE3JOXw",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 60
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        32,
+        736
+      ],
+      "id": "0c5998bc-66b9-41c5-ba64-7f9447834a6c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Purpose:\nThis tool retrieves accurate, up-to-date information about Chicken Republic outlets in Lagos, including locations, opening and closing times, menu items, pricing estimates, delivery options, table booking policies, payment methods, customer support procedures, and meal recommendations.\n\nUsage Instructions:\nUse this tool whenever a user asks questions related to Chicken Republic in Lagos. Always base responses strictly on the retrieved context. If information varies by outlet, clearly state that it may differ by location and politely ask the user for their area when needed.\n\nResponse Guidelines:\nProvide clear, friendly, and concise answers suitable for customer support. Do not invent details outside the retrieved context. If the information is not available, say so and offer the closest relevant help or next step.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "chickenrep",
+          "mode": "list",
+          "cachedResultName": "chickenrep"
+        },
+        "options": {
+          "pineconeNamespace": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        736
+      ],
+      "id": "f1ee1ad5-38e1-4a8a-b40a-4ff52626698c",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "OEIgDANvVH0ZqU7X",
+          "name": "PineconeApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        864
+      ],
+      "id": "a0fa9b18-d3f8-4f6e-8bed-7e0f2a2fa2d1",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Bc4C5pX8SsE3JOXw",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XuVI3hw0jTJM83moW2hGkYg_otQL-P9aib_QrXIQqzM",
+          "mode": "list",
+          "cachedResultName": "Chicken Rep Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XuVI3hw0jTJM83moW2hGkYg_otQL-P9aib_QrXIQqzM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XuVI3hw0jTJM83moW2hGkYg_otQL-P9aib_QrXIQqzM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DATE": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DATE', ``, 'string') }}",
+            "NAME": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NAME', ``, 'string') }}",
+            "EMAIL ADDRESS": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('EMAIL_ADDRESS', ``, 'string') }}",
+            "ORDER ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ORDER_ID', ``, 'string') }}",
+            "DELIVERY METHOD(WALK-IN/RIDER)": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DELIVERY_METHOD_WALK-IN_RIDER_', ``, 'string') }}",
+            "AMOUNT": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('AMOUNT', ``, 'string') }}",
+            "ORDER TYPE": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ORDER_TYPE', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NAME",
+              "displayName": "NAME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "EMAIL ADDRESS",
+              "displayName": "EMAIL ADDRESS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ORDER ID",
+              "displayName": "ORDER ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DELIVERY METHOD(WALK-IN/RIDER)",
+              "displayName": "DELIVERY METHOD(WALK-IN/RIDER)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AMOUNT",
+              "displayName": "AMOUNT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ORDER TYPE",
+              "displayName": "ORDER TYPE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        592,
+        752
+      ],
+      "id": "2d3b5d94-db52-424e-9a4c-23676cd4b121",
+      "name": "Customer Orders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "an2XwgKBZaSjI6OF",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Orders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "12560d45-799d-4c5e-b595-1abfff569943",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "caec7765f4b67a6774308ea99c1dbefb0268bdd69e78852f2ce0ee443656a9a9"
+  },
+  "id": "IiWisfoCCmZ4fGmG4UMa8",
+  "tags": []
+}
