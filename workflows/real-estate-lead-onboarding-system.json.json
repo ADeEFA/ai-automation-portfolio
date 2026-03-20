@@ -1,0 +1,264 @@
+{
+  "name": "Lead Onboarding System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a3a356d1-7746-4ba2-9156-de95450e644e",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ec4f362d-ea9f-4856-95f0-0f4fb2f72e5e",
+      "name": "Webhook",
+      "webhookId": "a3a356d1-7746-4ba2-9156-de95450e644e"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1GSJ1uHiAbTk1Drll3U53BDJbiHcbzKnRs17_lQOvAVk",
+          "mode": "list",
+          "cachedResultName": "Real Estate Lead Onboarding",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GSJ1uHiAbTk1Drll3U53BDJbiHcbzKnRs17_lQOvAVk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GSJ1uHiAbTk1Drll3U53BDJbiHcbzKnRs17_lQOvAVk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $json.body.fullName }}",
+            "Email ": "={{ $json.body.email }}",
+            "Phone Number": "={{ $json.body.phone }}",
+            "Interest type(Rent or Buy)": "={{ $json.body.interestType }}",
+            "Preferred Location": "={{ $json.body.preferredLocation }}",
+            "Budget(#)": "={{ $json.body.budget }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ",
+              "displayName": "Email ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Interest type(Rent or Buy)",
+              "displayName": "Interest type(Rent or Buy)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Preferred Location",
+              "displayName": "Preferred Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget(#)",
+              "displayName": "Budget(#)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7cf82c20-13ca-48ba-acec-c9611ba7df13",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Y1hQqUtTWIUcgKyP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a5f0c3de-fbec-4d54-b539-0ecf995b43d5",
+              "leftValue": "={{ $json['Interest type(Rent or Buy)'] }}",
+              "rightValue": "buy",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "29422929-2f45-4e99-9000-2d6fc4ba8133",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Append row in sheet').item.json['Email '] }}",
+        "subject": "Welcome to Adeefa’s Real Estates – Let’s Find Your Perfect Property.",
+        "emailType": "text",
+        "message": "=Hello  {{ $('Append row in sheet').item.json['Full Name'] }}\nWelcome to Adeefa’s Real Estates 👋\nThank you for reaching out and expressing interest in buying a property with us. We’re excited to guide you every step of the way toward owning your ideal home or investment property.\n\nWhat Happens Next?\n\nHere’s a simple breakdown of our buying process:\n\nUnderstanding Your Needs\nOne of our agents will review the details you submitted to fully understand your budget, preferred location, property type, and timeline.\n\nProperty Matching\nBased on your preferences, we’ll shortlist suitable properties and share the best options with you—saving you time and stress.\n\nProperty Viewings\nWe’ll schedule inspections (physical or virtual) at your convenience so you can explore each option properly.\n\nNegotiation & Offer\nOnce you find a property you love, we’ll help negotiate the best possible price and terms on your behalf.\n\nDocumentation & Closing\nOur team will guide you through all legal documentation, payments, and final handover to ensure a smooth and secure transaction.\n\nOur Promise\n\nAt Adeefa’s Real Estates, we are committed to transparency, professionalism, and helping you make confident property decisions.\n\nIf you have any questions or would like to move faster, simply reply to this email—we’re here to help.\n\nWarm regards,\nAdeefa’s Real Estates Team\nYour trusted partner in property ownership",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "0d4fd581-cade-48f9-9276-97d096f941c2",
+      "name": "Buying Email",
+      "webhookId": "c75c18d7-aa14-4e2c-89fd-b2d3c8778085",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mFOERHeATGqlZNdP",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email '] }}",
+        "subject": "Welcome to Adeefa’s Real Estates – Let’s Find Your Perfect Property",
+        "emailType": "text",
+        "message": "=Hello  {{ $json['Full Name'] }}, \nWelcome to Adeefa’s Real Estates 👋\nThank you for contacting us regarding renting a property. We’re happy to help you find a comfortable space that fits your lifestyle and budget.\n\nHow Our Rental Process Works:\n\nHere’s what you can expect:\n\nReview of Your Preferences\nWe’ll carefully go through your submitted details, including location, rent range, property type, and move-in date.\n\nAvailable Property Listings\nOur team will share suitable and currently available rental options that match your needs.\n\nProperty Inspection\nYou’ll be able to inspect shortlisted properties (physically or virtually) before making a decision.\n\nApplication & Agreement\nOnce you select a property, we’ll assist with the rental application, documentation, and agreement process.\n\nMove-In Support\nAfter successful documentation and payment, we’ll guide you through a smooth move-in process.\n\nWhy Choose Us?\n\nWe make renting simple, transparent, and stress-free—so you can focus on settling into your new home.\n\nFeel free to reply to this email if you have questions or need urgent assistance.\n\nBest regards,\nAdeefa’s Real Estates Team\nHelping you feel at home, every step of the way",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        96
+      ],
+      "id": "e2baa01c-856e-4d64-8c10-16dd9910087d",
+      "name": "Renting Email",
+      "webhookId": "ffc20142-22a0-4be5-8e69-451444590a99",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mFOERHeATGqlZNdP",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Buying Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Renting Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": null
+}
