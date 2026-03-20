@@ -21,8 +21,15 @@ I design and build AI-powered automation systems using tools like n8n, APIs, and
 ## 🚀 Projects
 
 ### 1. Webhook → Google Sheets → Email Automation
-Automated data capture from webhook, stored in Google Sheets, and triggered email notifications.
 
+**Problem:** Manual data collection and email notifications can be time-consuming and prone to errors.
+
+**Solution:** Built an automated workflow using n8n that captures data via webhook, stores it in Google Sheets, and triggers email notifications instantly.
+
+**Use Case:** Useful for form submissions, lead capture systems, customer inquiries, and internal data logging.
+
+**Workflow File:** /workflows/webhook-sheets-email-automation.json  
+**Screenshot:** /screenshots/webhook-sheets-email-automation.png
 ---
 
 ### 2. Real Estate Lead Onboarding System
